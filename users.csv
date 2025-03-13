@@ -1,0 +1,6 @@
+Username,Password,Role
+admin,pass,admin
+editor1,pass,editor
+editor2,pass,editor
+viewer1,pass,viewer
+viewer2,pass,viewer

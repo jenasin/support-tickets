@@ -55,7 +55,7 @@ if not st.session_state.authenticated:
             st.session_state.username = username
             st.session_state.role = user_row.iloc[0]["Role"]
             st.sidebar.success(f"Welcome, {username} ({st.session_state.role})!")
-            st.experimental_rerun()
+            st.rerun()
         else:
             st.sidebar.error("Invalid username or password. Please try again.")
 else:
@@ -64,7 +64,7 @@ else:
         st.session_state.authenticated = False
         st.session_state.username = ""
         st.session_state.role = ""
-        st.experimental_rerun()
+        st.rerun()
     
     page = st.sidebar.radio("Select a Page", ["View Data", "Edit Data" if st.session_state.role in ["admin", "editor"] else "View Only"])
     

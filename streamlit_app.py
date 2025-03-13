@@ -4,8 +4,21 @@ import os
 
 # Filepath for storing data
 CSV_FILE = "field_data.csv"
+USER_FILE = "users.csv"
 
-# Create or load dataset
+# Create or load user dataset
+def load_users():
+    if os.path.exists(USER_FILE):
+        return pd.read_csv(USER_FILE)
+    else:
+        users = pd.DataFrame({
+            "Username": ["admin", "editor1", "editor2", "viewer1", "viewer2"],
+            "Password": ["pass", "pass", "pass", "pass", "pass"],
+            "Role": ["admin", "editor", "editor", "viewer", "viewer"]
+        })
+        users.to_csv(USER_FILE, index=False)
+        return users
+
 def load_data():
     if os.path.exists(CSV_FILE):
         return pd.read_csv(CSV_FILE)
@@ -20,24 +33,44 @@ def load_data():
         return data
 
 data = load_data()
+users = load_users()
 
 # User authentication
-users = {"user1": "pass", "user2": "pass", "user3": "pass", "user4": "pass", "user5": "pass"}
-
 st.set_page_config(page_title="Farm Data Manager", layout="wide")
 st.sidebar.title("🔑 Login")
 
-username = st.sidebar.text_input("Username")
-password = st.sidebar.text_input("Password", type="password")
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+    st.session_state.username = ""
+    st.session_state.role = ""
 
-if username in users and users[username] == password:
-    st.sidebar.success(f"Welcome, {username}!")
+if not st.session_state.authenticated:
+    username = st.sidebar.text_input("Username")
+    password = st.sidebar.text_input("Password", type="password")
     
-    page = st.sidebar.radio("Select a Page", ["View Data", "Edit Data"])
+    if st.sidebar.button("Login"):
+        user_row = users[(users["Username"] == username) & (users["Password"] == password)]
+        if not user_row.empty:
+            st.session_state.authenticated = True
+            st.session_state.username = username
+            st.session_state.role = user_row.iloc[0]["Role"]
+            st.sidebar.success(f"Welcome, {username} ({st.session_state.role})!")
+            st.experimental_rerun()
+        else:
+            st.sidebar.error("Invalid username or password. Please try again.")
+else:
+    st.sidebar.write(f"Logged in as: **{st.session_state.username} ({st.session_state.role})**")
+    if st.sidebar.button("Logout"):
+        st.session_state.authenticated = False
+        st.session_state.username = ""
+        st.session_state.role = ""
+        st.experimental_rerun()
+    
+    page = st.sidebar.radio("Select a Page", ["View Data", "Edit Data" if st.session_state.role in ["admin", "editor"] else "View Only"])
     
     st.title("🌾 Farm Data Manager")
     
-    if page == "View Data":
+    if page == "View Data" or page == "View Only":
         st.write("### Current Field Data")
         st.dataframe(data, use_container_width=True)
     
@@ -48,5 +81,3 @@ if username in users and users[username] == password:
         if st.button("Save Data"):
             data.to_csv(CSV_FILE, index=False)
             st.success("Data successfully saved!")
-else:
-    st.sidebar.warning("Invalid username or password. Please try again.")

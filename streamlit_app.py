@@ -21,22 +21,32 @@ def load_data():
 
 data = load_data()
 
-# Streamlit UI
+# User authentication
+users = {"user1": "pass", "user2": "pass", "user3": "pass", "user4": "pass", "user5": "pass"}
+
 st.set_page_config(page_title="Farm Data Manager", layout="wide")
+st.sidebar.title("🔑 Login")
 
-st.sidebar.title("🌾 Farm Management")
-page = st.sidebar.radio("Select a Page", ["View Data", "Edit Data"])
+username = st.sidebar.text_input("Username")
+password = st.sidebar.text_input("Password", type="password")
 
-st.title("🌾 Farm Data Manager")
-
-if page == "View Data":
-    st.write("### Current Field Data")
-    st.dataframe(data, use_container_width=True)
-
-elif page == "Edit Data":
-    st.write("### Edit Field Data")
-    data = st.data_editor(data, num_rows="dynamic")
+if username in users and users[username] == password:
+    st.sidebar.success(f"Welcome, {username}!")
     
-    if st.button("Save Data"):
-        data.to_csv(CSV_FILE, index=False)
-        st.success("Data successfully saved!")
+    page = st.sidebar.radio("Select a Page", ["View Data", "Edit Data"])
+    
+    st.title("🌾 Farm Data Manager")
+    
+    if page == "View Data":
+        st.write("### Current Field Data")
+        st.dataframe(data, use_container_width=True)
+    
+    elif page == "Edit Data":
+        st.write("### Edit Field Data")
+        data = st.data_editor(data, num_rows="dynamic")
+        
+        if st.button("Save Data"):
+            data.to_csv(CSV_FILE, index=False)
+            st.success("Data successfully saved!")
+else:
+    st.sidebar.warning("Invalid username or password. Please try again.")
